@@ -44,6 +44,23 @@ def is_exists_duplicates_in_file(df, csv_file):
         exit()
 
 
+def get_ancestors_list(person_number):
+    ancestor_number = person_number
+    is_ancestor_exists = True
+    ancestors = []
+    while is_ancestor_exists:
+        sorted_rows = common_df.loc[common_df['Номер личный'] == int(ancestor_number)].sort_values(by=['Год'],
+                                                                                                   ascending=False)
+
+        notnull_father_rows = sorted_rows[sorted_rows['Номер отца'].notnull()]
+        if len(notnull_father_rows.index) != 0:
+            ancestors.append(notnull_father_rows['Номер отца'].iloc[0])
+            ancestor_number = notnull_father_rows['Номер отца'].iloc[0]
+        else:
+            is_ancestor_exists = False
+    return ancestors
+
+
 @app.route('/find_person', methods=['GET'])
 def find_person():
     num_own = request.args.get('num_own')
@@ -110,6 +127,38 @@ def get_ancestors_tree():
         tree = dict_record
         i = i + 1
     response = json.dumps(tree, ensure_ascii=False)
+    return Response(response, mimetype=MIME_TYPE)
+
+
+@app.route('/get_common_ancestors', methods=['GET'])
+def get_common_ancestors():
+    first_person_number = request.args.get('first_person_number')
+    second_person_number = request.args.get('second_person_number')
+
+    first_person_ancestors = get_ancestors_list(first_person_number)
+    second_person_ancestors = get_ancestors_list(second_person_number)
+    common_ancestors = list(set(first_person_ancestors) & set(second_person_ancestors))
+
+    ancestors = []
+    for ancestor_number in common_ancestors:
+        sorted_rows = common_df.loc[common_df['Номер личный'] == int(ancestor_number)].sort_values(by=['Год'],
+                                                                                                   ascending=False)
+        dict_record = sorted_rows.to_dict('records')[0]
+
+        notnull_father_rows = sorted_rows[sorted_rows['Номер отца'].notnull()]
+        if len(notnull_father_rows.index) != 0:
+            dict_record["Номер отца"] = notnull_father_rows['Номер отца'].iloc[0]
+
+        notnull_age_rows = sorted_rows[sorted_rows['Возраст ныне'].notnull()]
+        if len(notnull_age_rows) != 0:
+            dict_record["Год рождения"] = notnull_father_rows['Год'].iloc[0] - \
+                                          notnull_father_rows['Возраст ныне'].iloc[0]
+
+        dict_record.pop('Возраст ныне', None)
+        dict_record.pop('Год', None)
+        dict_record = {k: v for k, v in dict_record.items() if v}
+        ancestors.append(dict_record)
+    response = json.dumps(ancestors, ensure_ascii=False)
     return Response(response, mimetype=MIME_TYPE)
 
 

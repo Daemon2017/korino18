@@ -88,6 +88,38 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Get Common Ancestors Endpoint",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8080/get_common_ancestors?first_person_number=8&second_person_number=153",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						"get_common_ancestors"
+					],
+					"query": [
+						{
+							"key": "first_person_number",
+							"value": "8"
+						},
+						{
+							"key": "second_person_number",
+							"value": "153"
+						}
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }
