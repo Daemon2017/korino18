@@ -1,0 +1,93 @@
+{
+	"info": {
+		"_postman_id": "68e36b45-3658-41d1-bc93-76b47f8ea6c1",
+		"name": "Korino18",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Person Search Endpoint",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8080/find_person?num_own&num_father&name_church&patronym_church&name_pagan=Дур&patronym_pagan=деев&age&year",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						"find_person"
+					],
+					"query": [
+						{
+							"key": "num_own",
+							"value": null
+						},
+						{
+							"key": "num_father",
+							"value": null
+						},
+						{
+							"key": "name_church",
+							"value": null
+						},
+						{
+							"key": "patronym_church",
+							"value": null
+						},
+						{
+							"key": "name_pagan",
+							"value": "Дур"
+						},
+						{
+							"key": "patronym_pagan",
+							"value": "деев"
+						},
+						{
+							"key": "age",
+							"value": null
+						},
+						{
+							"key": "year",
+							"value": null
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Ancestors Tree Endpoint",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8080/get_ancestors_tree?ancestor_number=460",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						"get_ancestors_tree"
+					],
+					"query": [
+						{
+							"key": "ancestor_number",
+							"value": "460"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
