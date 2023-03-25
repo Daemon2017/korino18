@@ -44,6 +44,26 @@ def is_exists_duplicates_in_file(df, csv_file):
         exit()
 
 
+def get_person(person_number):
+    sorted_rows = common_df.loc[common_df['Номер личный'] == person_number].sort_values(by=['Год'],
+                                                                                        ascending=False)
+    person = sorted_rows.to_dict('records')[0]
+
+    notnull_father_rows = sorted_rows[sorted_rows['Номер отца'].notnull()]
+    if len(notnull_father_rows.index) != 0:
+        person["Номер отца"] = notnull_father_rows['Номер отца'].iloc[0]
+
+    notnull_age_rows = sorted_rows[sorted_rows['Возраст ныне'].notnull()]
+    if len(notnull_age_rows) != 0:
+        person["Год рождения"] = notnull_father_rows['Год'].iloc[0] - \
+                                 notnull_father_rows['Возраст ныне'].iloc[0]
+
+    person.pop('Возраст ныне', None)
+    person.pop('Год', None)
+    person = {k: v for k, v in person.items() if v}
+    return person
+
+
 def get_ancestors_list(person_number):
     is_ancestor_exists = True
     ancestors = [person_number]
@@ -100,29 +120,11 @@ def get_ancestors_tree():
 
     tree = {}
     i = 0
-    while True:
-        sorted_rows = common_df.loc[common_df['Номер личный'] == person_number].sort_values(by=['Год'],
-                                                                                            ascending=False)
-        dict_record = sorted_rows.to_dict('records')[0]
-
-        notnull_father_rows = sorted_rows[sorted_rows['Номер отца'].notnull()]
-        if len(notnull_father_rows.index) != 0:
-            dict_record["Номер отца"] = notnull_father_rows['Номер отца'].iloc[0]
-            person_number = notnull_father_rows['Номер отца'].iloc[0]
-        else:
-            break
-
-        notnull_age_rows = sorted_rows[sorted_rows['Возраст ныне'].notnull()]
-        if len(notnull_age_rows) != 0:
-            dict_record["Год рождения"] = notnull_father_rows['Год'].iloc[0] - \
-                                          notnull_father_rows['Возраст ныне'].iloc[0]
-
-        dict_record.pop('Возраст ныне', None)
-        dict_record.pop('Год', None)
-        dict_record = {k: v for k, v in dict_record.items() if v}
+    for ancestor in get_ancestors_list(person_number):
+        person = get_person(ancestor)
         if i != 0:
-            dict_record["Ребенок"] = tree
-        tree = dict_record
+            person["Ребенок"] = tree
+        tree = person
         i = i + 1
     response = json.dumps(tree, ensure_ascii=False)
     return Response(response, mimetype=MIME_TYPE)
@@ -137,26 +139,15 @@ def get_common_ancestors():
     second_person_ancestors = get_ancestors_list(second_person_number)
     common_ancestors = list(set(first_person_ancestors) & set(second_person_ancestors))
 
-    ancestors = []
-    for ancestor_number in common_ancestors:
-        sorted_rows = common_df.loc[common_df['Номер личный'] == ancestor_number].sort_values(by=['Год'],
-                                                                                              ascending=False)
-        dict_record = sorted_rows.to_dict('records')[0]
-
-        notnull_father_rows = sorted_rows[sorted_rows['Номер отца'].notnull()]
-        if len(notnull_father_rows.index) != 0:
-            dict_record["Номер отца"] = notnull_father_rows['Номер отца'].iloc[0]
-
-        notnull_age_rows = sorted_rows[sorted_rows['Возраст ныне'].notnull()]
-        if len(notnull_age_rows) != 0:
-            dict_record["Год рождения"] = notnull_father_rows['Год'].iloc[0] - \
-                                          notnull_father_rows['Возраст ныне'].iloc[0]
-
-        dict_record.pop('Возраст ныне', None)
-        dict_record.pop('Год', None)
-        dict_record = {k: v for k, v in dict_record.items() if v}
-        ancestors.append(dict_record)
-    response = json.dumps(ancestors, ensure_ascii=False)
+    tree = {}
+    i = 0
+    for ancestor in common_ancestors:
+        person = get_person(ancestor)
+        if i != 0:
+            person["Ребенок"] = tree
+        tree = person
+        i = i + 1
+    response = json.dumps(tree, ensure_ascii=False)
     return Response(response, mimetype=MIME_TYPE)
 
 
