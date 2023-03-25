@@ -97,22 +97,21 @@ def find_person():
 
 @app.route('/get_ancestors_tree', methods=['GET'])
 def get_ancestors_tree():
-    ancestor_number = request.args.get('ancestor_number')
+    person_number = request.args.get('person_number')
 
-    is_ancestor_exists = True
     tree = {}
     i = 0
-    while is_ancestor_exists:
-        sorted_rows = common_df.loc[common_df['Номер личный'] == int(ancestor_number)].sort_values(by=['Год'],
-                                                                                                   ascending=False)
+    while True:
+        sorted_rows = common_df.loc[common_df['Номер личный'] == int(person_number)].sort_values(by=['Год'],
+                                                                                                 ascending=False)
         dict_record = sorted_rows.to_dict('records')[0]
 
         notnull_father_rows = sorted_rows[sorted_rows['Номер отца'].notnull()]
         if len(notnull_father_rows.index) != 0:
             dict_record["Номер отца"] = notnull_father_rows['Номер отца'].iloc[0]
-            ancestor_number = notnull_father_rows['Номер отца'].iloc[0]
+            person_number = notnull_father_rows['Номер отца'].iloc[0]
         else:
-            is_ancestor_exists = False
+            break
 
         notnull_age_rows = sorted_rows[sorted_rows['Возраст ныне'].notnull()]
         if len(notnull_age_rows) != 0:
