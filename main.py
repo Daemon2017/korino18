@@ -45,17 +45,16 @@ def is_exists_duplicates_in_file(df, csv_file):
 
 
 def get_ancestors_list(person_number):
-    ancestor_number = person_number
     is_ancestor_exists = True
-    ancestors = []
+    ancestors = [person_number]
     while is_ancestor_exists:
-        sorted_rows = common_df.loc[common_df['Номер личный'] == int(ancestor_number)].sort_values(by=['Год'],
-                                                                                                   ascending=False)
+        sorted_rows = common_df.loc[common_df['Номер личный'] == person_number].sort_values(by=['Год'],
+                                                                                            ascending=False)
 
         notnull_father_rows = sorted_rows[sorted_rows['Номер отца'].notnull()]
         if len(notnull_father_rows.index) != 0:
             ancestors.append(notnull_father_rows['Номер отца'].iloc[0])
-            ancestor_number = notnull_father_rows['Номер отца'].iloc[0]
+            person_number = notnull_father_rows['Номер отца'].iloc[0]
         else:
             is_ancestor_exists = False
     return ancestors
@@ -97,13 +96,13 @@ def find_person():
 
 @app.route('/get_ancestors_tree', methods=['GET'])
 def get_ancestors_tree():
-    person_number = request.args.get('person_number')
+    person_number = int(request.args.get('person_number'))
 
     tree = {}
     i = 0
     while True:
-        sorted_rows = common_df.loc[common_df['Номер личный'] == int(person_number)].sort_values(by=['Год'],
-                                                                                                 ascending=False)
+        sorted_rows = common_df.loc[common_df['Номер личный'] == person_number].sort_values(by=['Год'],
+                                                                                            ascending=False)
         dict_record = sorted_rows.to_dict('records')[0]
 
         notnull_father_rows = sorted_rows[sorted_rows['Номер отца'].notnull()]
@@ -118,11 +117,11 @@ def get_ancestors_tree():
             dict_record["Год рождения"] = notnull_father_rows['Год'].iloc[0] - \
                                           notnull_father_rows['Возраст ныне'].iloc[0]
 
-        if i != 0:
-            dict_record["Ребенок"] = tree
         dict_record.pop('Возраст ныне', None)
         dict_record.pop('Год', None)
         dict_record = {k: v for k, v in dict_record.items() if v}
+        if i != 0:
+            dict_record["Ребенок"] = tree
         tree = dict_record
         i = i + 1
     response = json.dumps(tree, ensure_ascii=False)
@@ -131,8 +130,8 @@ def get_ancestors_tree():
 
 @app.route('/get_common_ancestors', methods=['GET'])
 def get_common_ancestors():
-    first_person_number = request.args.get('first_person_number')
-    second_person_number = request.args.get('second_person_number')
+    first_person_number = int(request.args.get('first_person_number'))
+    second_person_number = int(request.args.get('second_person_number'))
 
     first_person_ancestors = get_ancestors_list(first_person_number)
     second_person_ancestors = get_ancestors_list(second_person_number)
@@ -140,8 +139,8 @@ def get_common_ancestors():
 
     ancestors = []
     for ancestor_number in common_ancestors:
-        sorted_rows = common_df.loc[common_df['Номер личный'] == int(ancestor_number)].sort_values(by=['Год'],
-                                                                                                   ascending=False)
+        sorted_rows = common_df.loc[common_df['Номер личный'] == ancestor_number].sort_values(by=['Год'],
+                                                                                              ascending=False)
         dict_record = sorted_rows.to_dict('records')[0]
 
         notnull_father_rows = sorted_rows[sorted_rows['Номер отца'].notnull()]
