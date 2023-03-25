@@ -44,7 +44,7 @@ def is_exists_duplicates_in_file(df, csv_file):
         exit()
 
 
-def get_person(person_number):
+def get_person(person_number, is_get_childs):
     sorted_rows = common_df.loc[common_df['Номер личный'] == person_number].sort_values(by=['Год'],
                                                                                         ascending=False)
     person = sorted_rows.to_dict('records')[0]
@@ -57,6 +57,12 @@ def get_person(person_number):
     if len(notnull_age_rows) != 0:
         person["Год рождения"] = notnull_father_rows['Год'].iloc[0] - \
                                  notnull_father_rows['Возраст ныне'].iloc[0]
+
+    if is_get_childs:
+        childs = []
+        for child in get_childs_list(person_number):
+            childs.append(get_person(child, True))
+        person["Дети"] = childs
 
     person.pop('Возраст ныне', None)
     person.pop('Год', None)
@@ -78,6 +84,11 @@ def get_ancestors_list(person_number):
         else:
             is_ancestor_exists = False
     return ancestors
+
+
+def get_childs_list(person_number):
+    sorted_rows = common_df.loc[common_df['Номер отца'] == person_number]
+    return set(sorted_rows['Номер личный'].tolist())
 
 
 @app.route('/find_person', methods=['GET'])
@@ -121,11 +132,20 @@ def get_ancestors_tree():
     tree = {}
     i = 0
     for ancestor in get_ancestors_list(person_number):
-        person = get_person(ancestor)
+        person = get_person(ancestor, False)
         if i != 0:
-            person["Ребенок"] = tree
+            person["Дети"] = [tree]
         tree = person
         i = i + 1
+    response = json.dumps(tree, ensure_ascii=False)
+    return Response(response, mimetype=MIME_TYPE)
+
+
+@app.route('/get_descendants_tree', methods=['GET'])
+def get_descendants_tree():
+    person_number = int(request.args.get('person_number'))
+
+    tree = get_person(person_number, True)
     response = json.dumps(tree, ensure_ascii=False)
     return Response(response, mimetype=MIME_TYPE)
 
@@ -142,9 +162,9 @@ def get_common_ancestors():
     tree = {}
     i = 0
     for ancestor in common_ancestors:
-        person = get_person(ancestor)
+        person = get_person(ancestor, False)
         if i != 0:
-            person["Ребенок"] = tree
+            person["Дети"] = [tree]
         tree = person
         i = i + 1
     response = json.dumps(tree, ensure_ascii=False)
