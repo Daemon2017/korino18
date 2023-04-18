@@ -7,7 +7,7 @@ import pandas as pd
 from flask import Response, Flask, request
 from waitress import serve
 
-MIME_TYPE = 'application/json'
+MIME_TYPE_JSON = 'application/json'
 
 app = Flask(__name__)
 common_df = pd.DataFrame()
@@ -54,7 +54,7 @@ def get_person(person_number, is_get_childs):
         person["Номер отца"] = notnull_father_rows['Номер отца'].iloc[0]
 
     notnull_age_rows = sorted_rows[sorted_rows['Возраст ныне'].notnull()]
-    if len(notnull_age_rows) != 0:
+    if len(notnull_age_rows) != 0 and len(notnull_father_rows) != 0:
         person["Год рождения"] = notnull_father_rows['Год'].iloc[0] - \
                                  notnull_father_rows['Возраст ныне'].iloc[0]
 
@@ -122,7 +122,7 @@ def find_person():
     rows_dicts = rows.to_dict('records')
     rows_dicts = [{k: v for k, v in rows_dict.items() if v} for rows_dict in rows_dicts]
     response = json.dumps(rows_dicts, ensure_ascii=False)
-    return Response(response, mimetype=MIME_TYPE)
+    return Response(response, mimetype=MIME_TYPE_JSON)
 
 
 @app.route('/get_ancestors_tree', methods=['GET'])
@@ -138,7 +138,7 @@ def get_ancestors_tree():
         tree = person
         i = i + 1
     response = json.dumps(tree, ensure_ascii=False)
-    return Response(response, mimetype=MIME_TYPE)
+    return Response(response, mimetype=MIME_TYPE_JSON)
 
 
 @app.route('/get_descendants_tree', methods=['GET'])
@@ -147,7 +147,7 @@ def get_descendants_tree():
 
     tree = get_person(person_number, True)
     response = json.dumps(tree, ensure_ascii=False)
-    return Response(response, mimetype=MIME_TYPE)
+    return Response(response, mimetype=MIME_TYPE_JSON)
 
 
 @app.route('/get_common_ancestors', methods=['GET'])
@@ -168,7 +168,7 @@ def get_common_ancestors():
         tree = person
         i = i + 1
     response = json.dumps(tree, ensure_ascii=False)
-    return Response(response, mimetype=MIME_TYPE)
+    return Response(response, mimetype=MIME_TYPE_JSON)
 
 
 if __name__ == '__main__':
