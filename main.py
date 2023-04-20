@@ -8,6 +8,7 @@ from flask import Response, Flask, request
 from waitress import serve
 
 MIME_TYPE_JSON = 'application/json'
+MIME_TYPE_CSV = 'text/csv'
 
 app = Flask(__name__)
 common_df = pd.DataFrame()
@@ -169,6 +170,39 @@ def get_common_ancestors():
         i = i + 1
     response = json.dumps(tree, ensure_ascii=False)
     return Response(response, mimetype=MIME_TYPE_JSON)
+
+
+def get_full_df(df):
+    new_df = df[df['Год'] == df['Год'].max()]
+    for index, row in df[df['Год рождения'].notna()].sort_values(by=['Год'], ascending=False).iterrows():
+        if pd.isnull(new_df['Год рождения'].values[0]):
+            new_df['Год рождения'] = row['Год рождения']
+    return new_df
+
+
+@app.route('/get_yearly_population', methods=['GET'])
+def get_yearly_population():
+    start_year = int(request.args.get('start_year'))
+    end_year = int(request.args.get('end_year'))
+
+    data = common_df
+    data = data[~((data['Возраст ныне'].isnull()) & (data['Год выбытия'].isnull()))]
+    data["Год рождения"] = data['Год'] - data['Возраст ныне']
+    data = data.drop(columns=['Номер отца',
+                              'Имя мирское',
+                              'Отчество мирское',
+                              'Возраст ныне',
+                              'Имя церковное',
+                              'Отчество церковное'])
+    data = data.groupby('Номер личный').apply(get_full_df)
+    data = data.drop(columns=['Год'])
+
+    year_to_population = pd.DataFrame(columns=['Год', 'Население'])
+    for year in range(start_year, end_year + 1):
+        year_data = data[data['Год рождения'] <= year]
+        year_data = year_data[(year_data['Год выбытия'] > year) | (year_data['Год выбытия'].isnull())]
+        year_to_population = year_to_population.append({'Год': year, 'Население': len(year_data)}, ignore_index=True)
+    return Response(year_to_population.to_csv(sep=',', index=False), mimetype=MIME_TYPE_CSV)
 
 
 if __name__ == '__main__':
