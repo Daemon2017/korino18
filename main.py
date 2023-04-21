@@ -173,6 +173,10 @@ def get_common_ancestors():
 
 
 def get_full_df(df):
+    notna_df = df[df['Год рождения'].notna()]
+    if len(np.unique(notna_df['Год рождения'])) != 1:
+        print("ВНИМАНИЕ: у человека #{0} разный год рождения между переписями - {1}"
+              .format(notna_df['Номер личный'].iloc[0], list(notna_df['Год рождения'])))
     new_df = df[df['Год'] == df['Год'].max()]
     for index, row in df[df['Год рождения'].notna()].sort_values(by=['Год'], ascending=False).iterrows():
         if pd.isnull(new_df['Год рождения'].values[0]):
