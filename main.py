@@ -205,7 +205,6 @@ def get_yearly_population():
     for year in range(start_year, end_year + 1):
         year_data = data[data['Год рождения'] <= year]
         year_data = year_data[(year_data['Год выбытия'] > year) | (year_data['Год выбытия'].isnull())]
-        # year_to_population = year_to_population.append({'Год': year, 'Население': len(year_data)}, ignore_index=True)
         year_to_population = pd.concat([year_to_population, pd.DataFrame.from_dict({'Год': [year], 'Население': [len(year_data)]})], ignore_index=True)
     return Response(year_to_population.to_csv(sep=',', index=False), mimetype=MIME_TYPE_CSV)
 
