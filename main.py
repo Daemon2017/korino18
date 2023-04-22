@@ -17,17 +17,22 @@ common_df = pd.DataFrame()
 def prepare_data():
     global common_df
     dir_name = "ready"
-    file_name_regex = r"(\w*)_(\d*)_(\d*).csv"
-    files = os.listdir(dir_name)
-    csv_files = [file for file in files if file.endswith('.csv')]
-    common_df = pd.DataFrame()
-    for csv_file in csv_files:
-        print("Обрабатывается файл {0}/{1}".format(dir_name, csv_file))
-        df = pd.read_csv(dir_name + "/" + csv_file)
-        is_exists_duplicates_in_file(df, csv_file)
-        result = re.search(file_name_regex, csv_file)
-        df['Год'] = result.group(2)
-        common_df = pd.concat([common_df, df], sort=False)
+    directories = [dir for dir in os.listdir(dir_name) if os.path.isdir(os.path.join(dir_name, dir))]
+    for directory in directories:
+        files = os.listdir(os.path.join(dir_name, directory))
+        csv_files = [file for file in files if file.endswith('.csv')]
+        if len(csv_files) > 0:
+            file_name_regex = r"(\w*)_(\d*)_(\d*).csv"
+            current_df = pd.DataFrame()
+            for csv_file in csv_files:
+                print("Обрабатывается файл {0}".format(os.path.join(dir_name, directory, csv_file)))
+                df = pd.read_csv(os.path.join(dir_name, directory, csv_file))
+                is_exists_duplicates_in_directory(df, csv_file)
+                result = re.search(file_name_regex, csv_file)
+                df['Год'] = result.group(2)
+                current_df = pd.concat([current_df, df], sort=False)
+            is_exists_duplicates_in_directory(current_df, directory)
+            common_df = pd.concat([common_df, current_df], sort=False)
     common_df = common_df.replace(np.nan, None)
     common_df["Номер личный"] = common_df["Номер личный"].astype(int, errors='ignore')
     common_df["Номер отца"] = common_df["Номер отца"].astype(int, errors='ignore')
@@ -36,11 +41,12 @@ def prepare_data():
     print("Подготовка данных завершена!")
 
 
-def is_exists_duplicates_in_file(df, csv_file):
+def is_exists_duplicates_in_directory(df, directory):
     duplicates = df[df['Номер личный'].duplicated(keep=False)]
     if duplicates.size > 0:
-        print("В файле {0} выявлены неуникальные значения в столбце \"Номер личный\", дальнейшая работа невозможна."
-              .format(csv_file))
+        print("В папке/файле {0} выявлены неуникальные значения "
+              "в столбце \"Номер личный\", "
+              "дальнейшая работа невозможна.".format(directory))
         print(duplicates)
         exit()
 
