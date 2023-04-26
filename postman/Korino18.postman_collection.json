@@ -67,7 +67,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://127.0.0.1:8080/get_ancestors_tree?ancestor_number=460",
+					"raw": "http://127.0.0.1:8080/get_ancestors_tree?person_number=460",
 					"protocol": "http",
 					"host": [
 						"127",
@@ -81,8 +81,36 @@
 					],
 					"query": [
 						{
-							"key": "ancestor_number",
+							"key": "person_number",
 							"value": "460"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Descendants Tree Endpoint",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8080/get_descendants_tree?person_number=185",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						"get_descendants_tree"
+					],
+					"query": [
+						{
+							"key": "person_number",
+							"value": "185"
 						}
 					]
 				}
@@ -95,7 +123,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://127.0.0.1:8080/get_common_ancestors?first_person_number=8&second_person_number=153",
+					"raw": "http://127.0.0.1:8080/get_common_ancestors?first_person_number=455&second_person_number=457",
 					"protocol": "http",
 					"host": [
 						"127",
@@ -110,11 +138,43 @@
 					"query": [
 						{
 							"key": "first_person_number",
-							"value": "8"
+							"value": "455"
 						},
 						{
 							"key": "second_person_number",
-							"value": "153"
+							"value": "457"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Yearly Population Endpoint",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8080/get_yearly_population?start_year=1662&end_year=1762",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						"get_yearly_population"
+					],
+					"query": [
+						{
+							"key": "start_year",
+							"value": "1662"
+						},
+						{
+							"key": "end_year",
+							"value": "1762"
 						}
 					]
 				}

@@ -198,18 +198,12 @@ def get_yearly_population():
     data = common_df
     data = data[~((data['Возраст ныне'].isnull()) & (data['Год выбытия'].isnull()))]
     data["Год рождения"] = data['Год'] - data['Возраст ныне']
-    data = data.drop(columns=['Номер отца',
-                              'Имя мирское',
-                              'Отчество мирское',
-                              'Возраст ныне',
-                              'Имя церковное',
-                              'Отчество церковное'])
     data = data.groupby('Номер личный').apply(get_full_df)
-    data = data.drop(columns=['Год'])
 
     year_to_population = pd.DataFrame(columns=['Год', 'Население'])
     for year in range(start_year, end_year + 1):
         year_data = data[data['Год рождения'] <= year]
+        year_data = year_data[~year_data['Женщина']]
         year_data = year_data[(year_data['Год выбытия'] > year) | (year_data['Год выбытия'].isnull())]
         year_to_population = pd.concat(
             [year_to_population, pd.DataFrame.from_dict({'Год': [year], 'Население': [len(year_data)]})],
