@@ -196,19 +196,25 @@ def get_yearly_population():
     end_year = int(request.args.get('end_year'))
 
     data = common_df
-    data = data[~((data['Возраст ныне'].isnull()) & (data['Год выбытия'].isnull()))]
+    data = data[
+        ~((data['Возраст ныне'].isnull()) &
+          (data['Год выбытия'].isnull()))
+    ]
     data["Год рождения"] = data['Год'] - data['Возраст ныне']
     data = data.groupby('Номер личный').apply(get_full_df)
 
-    year_to_population = pd.DataFrame(columns=['Год', 'Население'])
+    year_to_population = pd.DataFrame(columns=['Год', 'Мужское население'])
     for year in range(start_year, end_year + 1):
         year_data = data[data['Год рождения'] <= year]
         if year_data.size > 0:
             only_males_data = year_data[year_data['Женщина'] != True]
-            only_males_data = only_males_data[(only_males_data['Год выбытия'] > year) |
-                                              (only_males_data['Год выбытия'].isnull())]
+            only_males_data = only_males_data[
+                (only_males_data['Год выбытия'] > year) |
+                (only_males_data['Год выбытия'].isnull())
+                ]
             year_to_population = pd.concat(
-                [year_to_population, pd.DataFrame.from_dict(dict(Год=[year], Население=[len(only_males_data)]))],
+                [year_to_population,
+                 pd.DataFrame.from_dict({'Год': [year], 'Мужское население': [len(only_males_data)]})],
                 ignore_index=True)
     return Response(year_to_population.to_csv(sep=',', index=False), mimetype=MIME_TYPE_CSV)
 
